@@ -1,0 +1,12 @@
+# IDE
+**/.idea/
+!.idea/backend.iml
+!.idea/misc.xml
+!.idea/modules.xml
+!.idea/sqldialects.xml
+!.idea/vcs.xml
+
+**/public/*.db
+**/public/*.db-shm
+**/public/*.db-wal
+**/public/*.pem
