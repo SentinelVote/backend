@@ -14,9 +14,6 @@ func (s *Server) routes() {
 	s.Router.Get("/", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "public/index.html")
 	})
-	s.Router.Get("/robots.txt", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "public/robots.txt")
-	})
 
 	s.Router.Route("/login", func(r chi.Router) {
 		r.Post("/", s.handleAuthLogin())
