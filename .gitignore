@@ -1,5 +1,5 @@
 # IDE
-**/.idea/
+.idea/workspace.xml
 !.idea/backend.iml
 !.idea/misc.xml
 !.idea/modules.xml
