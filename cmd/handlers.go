@@ -201,48 +201,6 @@ func (s *Server) handleAuthResetPassword() http.HandlerFunc {
 }
 
 // +----------------------------------------------------------------------------------------------+
-// |                                          Admin Handlers                                      |
-// +----------------------------------------------------------------------------------------------+
-
-func (s *Server) handleAdminGetUsers() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		conn := s.Database.Get(context.Background())
-		defer s.Database.Put(conn)
-
-		var users []User
-		err := sqlitex.Execute(conn, "SELECT email, first_name, last_name, constituency, public_key, private_key, has_voted FROM users WHERE is_central_authority = FALSE ORDER BY (public_key != '') DESC, rowid",
-			&sqlitex.ExecOptions{
-				ResultFunc: func(stmt *sqlite.Stmt) error {
-					user := User{
-						Email:        stmt.ColumnText(0),
-						FirstName:    stmt.ColumnText(1),
-						LastName:     stmt.ColumnText(2),
-						Constituency: stmt.ColumnText(3),
-						PublicKey:    stmt.ColumnText(4),
-						PrivateKey:   stmt.ColumnText(5),
-						HasVoted:     stmt.ColumnBool(6),
-					}
-					users = append(users, user)
-					return nil
-				},
-			})
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		jsonResponse, err := json.Marshal(users)
-		if err != nil {
-			http.Error(w, "Error converting users to JSON", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write(jsonResponse)
-	}
-}
-
-// +----------------------------------------------------------------------------------------------+
 // |                                     User Table Handlers                                      |
 // +----------------------------------------------------------------------------------------------+
 
@@ -386,59 +344,6 @@ func (s *Server) StoreUsersPublicKeysHandler() http.HandlerFunc {
 			http.Error(w, "Error converting response to JSON", http.StatusInternalServerError)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write(jsonResponse)
-	}
-}
-
-// +----------------------------------------------------------------------------------------------+
-// |                                        Voter Handlers                                        |
-// +----------------------------------------------------------------------------------------------+
-
-func (s *Server) handleVoterUpdateHasVotedByEmail() http.HandlerFunc {
-	type request struct {
-		Email    string `json:"email"`
-		HasVoted bool   `json:"hasVoted"`
-	}
-	type response struct {
-		Success bool `json:"success"`
-	}
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Called: handleVoterUpdateHasVotedByEmail")
-		if !isHeaderJSON(w, r) {
-			return
-		}
-		defer r.Body.Close()
-
-		// Define a request structure to match the incoming JSON structure
-		req := request{}
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "Invalid request body", http.StatusBadRequest)
-			return
-		}
-		log.Println("DEBUG: ", req.Email)
-		log.Println("DEBUG: ", req.HasVoted)
-
-		// Validate email.
-		if req.Email == "" {
-			http.Error(w, "Email is required", http.StatusBadRequest)
-			return
-		}
-
-		// Update the user's hasVoted field.
-		err := db.UpdateHasVotedByEmail(s.Database.Get(context.Background()), req.Email, req.HasVoted)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// Return a JSON response of {success: true}
-		jsonResponse, err := json.Marshal(response{Success: true})
-		if err != nil {
-			http.Error(w, "Error converting response to JSON", http.StatusInternalServerError)
-			return
-		}
-
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(jsonResponse)
 	}
