@@ -10,3 +10,4 @@
 **/public/*.db-shm
 **/public/*.db-wal
 **/public/*.pem
+**/public/*.sql
