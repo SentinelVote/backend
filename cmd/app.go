@@ -3,6 +3,7 @@ package cmd
 // Standard library on top, third-party packages below.
 import (
 	"log"
+	"math"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -19,14 +20,12 @@ func Run() error {
 	s.routes()
 
 	// Set up the database.
-	s.URI = &flags.URI
-	s.TotalUsers = &flags.TotalUsers
-	s.Schema = &flags.Schema
-	s.PoolSize = new(int)
-	if *s.TotalUsers > 1000 {
-		*s.PoolSize = 1000
-	} else {
-		*s.PoolSize = *s.TotalUsers
+	s.URI = flags.URI
+	s.TotalUsers = flags.TotalUsers
+	s.Schema = flags.Schema
+	s.PoolSize = int(math.Ceil(float64(s.TotalUsers) * .75))
+	if s.PoolSize > 1000 {
+		s.PoolSize = 1000
 	}
 	if err := s.database(); err != nil {
 		return err
