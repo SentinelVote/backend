@@ -1,9 +1,8 @@
 DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS folded_public_keys;
+DROP TABLE IF EXISTS is_end_of_election;
 DROP TABLE IF EXISTS constituencies;
 DROP TABLE IF EXISTS first_names;
 DROP TABLE IF EXISTS last_names;
-DROP TABLE IF EXISTS is_end_of_election;
 
 /*
 PRIMARY KEYS must also be declared NOT NULL:
@@ -24,12 +23,6 @@ is_central_authority BOOLEAN             NOT NULL DEFAULT FALSE,
 private_key          TEXT                NOT NULL DEFAULT ''
 );
 
-CREATE TABLE folded_public_keys (
-singleton          INT2 PRIMARY KEY NOT NULL CHECK ( singleton = 1 ),
-folded_public_keys TEXT             NOT NULL
-);
-
 CREATE TABLE is_end_of_election (
-singleton INT2 PRIMARY KEY NOT NULL CHECK ( singleton = 1 ),
-is_end_of_election BOOLEAN NOT NULL
+is_end_of_election   INT2    PRIMARY KEY NOT NULL CHECK ( is_end_of_election = 1 )
 );

@@ -2,7 +2,6 @@ package cmd
 
 // Standard library on top, third-party packages below.
 import (
-	"backend/internal/db"
 	"bufio"
 	"fmt"
 	"log"
@@ -12,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"backend/internal/db"
 	"github.com/go-chi/chi/v5"
 	"github.com/goccy/go-json"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -26,7 +26,7 @@ import (
 // handleDevPanic helps in testing middleware.Recoverer error recovery and logging mechanisms.
 func (s *Server) handleDevPanic() http.HandlerFunc {
 	return func(_ http.ResponseWriter, _ *http.Request) {
-		panic("test")
+		panic("Test panic called by handleDevPanic()")
 	}
 }
 
@@ -39,7 +39,6 @@ func (s *Server) handleDevMemApp() http.HandlerFunc {
 		Sys        json.Number `json:"sys"`         // MB obtained from the system.
 		NumGC      json.Number `json:"num_gc"`      // Number of completed GC cycles.
 	}
-
 	return func(w http.ResponseWriter, _ *http.Request) {
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
@@ -62,7 +61,11 @@ func (s *Server) handleDevMemApp() http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(jsonResponse)
+		_, err = w.Write(jsonResponse)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Error writing response", http.StatusInternalServerError)
+		}
 	}
 }
 
@@ -107,7 +110,11 @@ func (s *Server) handleDevMemSystem() http.HandlerFunc {
 
 		// Write the JSON to the response
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(jsonResponse)
+		_, err = w.Write(jsonResponse)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Error writing response", http.StatusInternalServerError)
+		}
 	}
 }
 
@@ -117,7 +124,12 @@ func meminfoParse() (map[string]int, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(file)
 
 	// Parse the file line by line, and store the values in a map.
 	memInfo := make(map[string]int)
@@ -151,6 +163,9 @@ func meminfoParse() (map[string]int, error) {
 
 func (s *Server) handleDevDatabaseReset() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		conn := s.Database.Get(r.Context())
+		defer s.Database.Put(conn)
+
 		schema := chi.URLParam(r, "schema")
 		var purpose int
 		if schema == "production" {
@@ -170,61 +185,17 @@ func (s *Server) handleDevDatabaseReset() http.HandlerFunc {
 			return
 		}
 
-		err = db.CreateSchema(s.Database.Get(r.Context()), purpose, initialUserCount)
+		err = db.CreateSchema(conn, purpose, initialUserCount)
 		if err != nil {
 			http.Error(w, "Error creating schema", http.StatusInternalServerError)
 			return
 		}
 
-		w.Write([]byte(fmt.Sprintf("Created %s schema with %d users", schema, initialUserCount)))
-	}
-}
-
-func (s *Server) handleDevDatabaseGetUsers() http.HandlerFunc {
-	const query = `
-		SELECT json_group_array(json_object(
-			'uuid', uuid,
-			'email', email,
-			'password', password,
-			'publicKey', public_key,
-			'hasVoted', has_voted,
-			'constituency', constituency,
-			'firstName', first_name,
-			'lastName', last_name,
-			'isCentralAuthority', is_central_authority,
-			'privateKey', private_key
-		)) as result
-		FROM users;`
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		users, err := sqlitex.ResultText(s.Database.Get(r.Context()).Prep(query))
+		_, err = w.Write([]byte(fmt.Sprintf("Created %s schema with %d users", schema, initialUserCount)))
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "Error getting users", http.StatusInternalServerError)
-			return
+			http.Error(w, "Error writing response", http.StatusInternalServerError)
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(users))
-	}
-}
-
-func (s *Server) handleDevDatabaseGetFoldedPublicKeys() http.HandlerFunc {
-	const query = `
-		SELECT json_group_array(json_object(
-			'singleton', singleton,
-			'foldedPublicKeys', folded_public_keys
-		)) as result
-		FROM folded_public_keys;`
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		foldedPublicKeys, err := sqlitex.ResultText(s.Database.Get(r.Context()).Prep(query))
-		if err != nil {
-			log.Println(err)
-			http.Error(w, "Error getting folded public keys", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(foldedPublicKeys))
 	}
 }
 
@@ -245,22 +216,29 @@ func (s *Server) handleDevDatabaseGetFullDatabase() http.HandlerFunc {
 					'privateKey', private_key
 				)) FROM users
 			),
-			'folded_public_keys', (
+			'isEndOfElection', (
 				SELECT json_group_array(json_object(
-					'singleton', singleton,
-					'foldedPublicKeys', folded_public_keys
-				)) FROM folded_public_keys
+					'isEndOfElection', is_end_of_election
+				)) FROM is_end_of_election
 			)
 		) as result;`
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		result, err := sqlitex.ResultText(s.Database.Get(r.Context()).Prep(query))
+		conn := s.Database.Get(r.Context())
+		defer s.Database.Put(conn)
+
+		result, err := sqlitex.ResultText(conn.Prep(query))
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Error getting the entire database", http.StatusInternalServerError)
 			return
 		}
+
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(result))
+		_, err = w.Write([]byte(result))
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Error writing the entire database", http.StatusInternalServerError)
+		}
 	}
 }

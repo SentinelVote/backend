@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/cors"
 )
 
+//goland:noinspection HttpUrlsUsage
 func (s *Server) middleware() {
 	s.Router.Use(middleware.Logger)
 	s.Router.Use(middleware.Recoverer)
@@ -21,7 +22,7 @@ func (s *Server) middleware() {
 			"http://*",
 			"https://voter-app.vercel.app/",
 		},
-		AllowedMethods:   []string{"HEAD", "GET", "POST", "PUT"},
+		AllowedMethods:   []string{"HEAD", "GET", "POST", "PUT", "PATCH"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: false,

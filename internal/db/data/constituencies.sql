@@ -1,3 +1,4 @@
+-- noinspection SpellCheckingInspectionForFile
 CREATE TABLE constituencies (constituency TEXT NOT NULL PRIMARY KEY);
 INSERT INTO constituencies (constituency) VALUES
 ('ANG MO KIO'),

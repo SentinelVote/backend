@@ -1,106 +1,80 @@
 package db
 
 import (
-	"backend/internal/fabric"
-	"backend/internal/lrs"
+	"backend/internal/foldpub"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 
-	"github.com/alexedwards/argon2id"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
+//goland:noinspection GoSnakeCaseUsage,GoCommentStart
 const (
-	PRODUCTION      = iota // Public keys, private keys, and folded public keys are not initialized in the database.
-	SIMULATION             // Public keys, private keys, and folded public keys are initialized in the database.
-	SIMULATION_FULL        // Public keys, private keys, and folded public keys are initialized in the database, and folded public keys are inserted into the blockchain.
+	// Public keys and private keys are not initialized in the database.
+	PRODUCTION = iota
+
+	// Public keys and private keys are initialized in the database.
+	SIMULATION
+
+	// Public keys and private keys are initialized in the database,
+	// and folded public keys are inserted into the blockchain.
+	SIMULATION_FULL
 )
 
-func CreateSchema(conn *sqlite.Conn, purpose int, initialUserCount int) error {
+func CreateSchema(conn *sqlite.Conn, purpose int, totalUsers int) error {
+
 	log.Println("Creating schema...")
-	var err error = nil
 
-	// Define a non-default password for the admin, user1, and user2.
-	// Hashing is done via argon2id() in insert_default.sql.
-	nonDefaultPassword := "Password1!"
-	log.Println("Non-default password (actual): " + nonDefaultPassword)
-
-	// Define a default password, for the remaining users.
-	defaultPassword := "password"
-	// Hash the password now; the query string will be replaced later.
-	// Everyone uses the same hash,
-	// because doing so for a large number of users is computationally expensive.
-	defaultPasswordHashed, err := argon2id.CreateHash(defaultPassword, argon2id.DefaultParams)
-	if err != nil {
-		return err
-	}
-	log.Println("Default password (actual): " + defaultPassword)
-	log.Println("Default password (hashed): " + defaultPasswordHashed)
-
-	var dbInsertMany string
+	// Perform a string replacement to insert our chosen number of users.
+	// We also minus two, because we inserted 2 users from InsertDefault.
+	var insertMany string
 	if purpose == PRODUCTION {
-		dbInsertMany = InsertProduction
+		insertMany = strings.ReplaceAll(InsertProduction, "?1", strconv.Itoa(totalUsers-2))
 	} else {
-		dbInsertMany = InsertSimulation
+		insertMany = strings.ReplaceAll(InsertSimulation, "?1", strconv.Itoa(totalUsers-2))
 	}
-
-	// Replace the query string's password with the hashed password.
-	dbInsertDefault := strings.ReplaceAll(InsertDefault, "'password'", "'"+nonDefaultPassword+"'")
-	dbInsertMany = strings.ReplaceAll(dbInsertMany, "'password'", "'"+defaultPasswordHashed+"'")
-
-	// We inserted 2 users in dbInsertDefault.
-	initialUserCount -= 2
-
-	// Replace the query string's initial number of users with the chosen number of users.
-	replacedValue := "LIMIT " + strconv.Itoa(initialUserCount)
-	dbInsertMany = strings.ReplaceAll(dbInsertMany, "LIMIT 8", replacedValue)
 
 	// The SQL transaction string to be executed.
-	// BEGIN TRANSACTION and COMMIT is done by sqlitex.ExecScript.
+	// BEGIN TRANSACTION and COMMIT is implicitly done by sqlitex.ExecScript.
 	sep := "\n"
 	var transaction = strings.Join([]string{
 		Schema,
 		Constituencies,
 		FirstNames,
 		LastNames,
-		dbInsertDefault,
-		dbInsertMany,
+		InsertDefault,
+		insertMany,
 	}, sep)
-	// log.Println("SQL transaction string after replacements:", transaction)
 
-	// Execute the SQL transaction.
+	// Write the query string to disk (for debugging purposes).
+	if err := os.WriteFile("public/query.sql", []byte(transaction), os.FileMode(0644)); err != nil {
+		return err
+	}
+
 	log.Println("Executing SQL transaction...")
 	if err := sqlitex.ExecScript(conn, transaction); err != nil {
 		return err
 	}
 	log.Println("Successfully executed SQL transaction.")
 
-	// Write the PEM files to disk.
+	// Write the PEM files to disk (for debugging purposes).
 	if err := writeKeys(conn); err != nil {
 		return err
 	}
 
-	// Generate key pairs and the linkable ring signature group.
-	if purpose == SIMULATION || purpose == SIMULATION_FULL {
-		if publicKeys, err := GetPublicKeys(conn); err != nil {
-			return err
-		} else if foldedPublicKeys, err := lrs.FoldPublicKeys(publicKeys); err != nil {
-			return err
-		} else if err = InsertFoldedPublicKeys(conn, foldedPublicKeys); err != nil {
-			return err
-		} else if purpose == SIMULATION_FULL {
-			if res, err := fabric.FabricPutFoldedPublicKeys(foldedPublicKeys); err != nil {
-				log.Println("Unable to insert folded public keys into the blockchain.")
-				log.Println("Error message: " + err.Error())
-			} else if res == "OK" {
-				log.Println("Successfully inserted folded public keys into the blockchain.")
-			} else {
-				log.Println("Unable to insert folded public keys into the blockchain.")
-				log.Println("Error message: " + res)
-			}
+	// A full simulation will also store the folded public keys in the blockchain.
+	if purpose == SIMULATION_FULL {
+		if response, err := foldpub.PutFoldedPublicKeys(conn); err != nil {
+			log.Println("Unable to insert folded public keys into the blockchain.")
+			log.Println("Error message: " + err.Error())
+		} else if response != "OK" {
+			log.Println("Unable to insert folded public keys into the blockchain.")
+			log.Println("Error message: " + response)
+		} else {
+			log.Println("Successfully inserted folded public keys into the blockchain.")
 		}
 	}
 
