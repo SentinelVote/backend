@@ -29,7 +29,7 @@ func (s *Server) routes() {
 	s.Router.Route("/admin", func(r chi.Router) {
 		r.Get("/users", s.handleAdminGetUsers())
 		r.Get("/folded-public-keys", s.handleAdminPutFoldedPublicKeys())
-		// r.Get("/announce", s.handleAdminAnnounceResult())
+		r.Get("/announce", s.handleAdminAnnounceResult())
 	})
 
 	// Voter-only handlers (authentication required).

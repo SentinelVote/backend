@@ -265,8 +265,18 @@ func (s *Server) handleAdminPutFoldedPublicKeys() http.HandlerFunc {
 }
 
 func (s *Server) handleAdminAnnounceResult() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	query := `INSERT INTO is_end_of_election  VALUES (1);`
 
+	return func(w http.ResponseWriter, r *http.Request) {
+		conn := s.Database.Get(r.Context())
+		defer s.Database.Put(conn)
+
+		err := sqlitex.Execute(conn, query, nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		respondPlainText(&w, "Successfully inserted into is_end_of_election")
 	}
 }
 
