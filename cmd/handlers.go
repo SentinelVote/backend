@@ -381,6 +381,7 @@ func (s *Server) handleAdminPutFoldedPublicKeys() http.HandlerFunc {
 
 func (s *Server) handleAdminAnnounceResult() http.HandlerFunc {
 	query := `INSERT INTO is_end_of_election  VALUES (1);`
+	expected := "sqlite: step: constraint failed: UNIQUE constraint failed: is_end_of_election.is_end_of_election"
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		conn := s.Database.Get(r.Context())
@@ -388,7 +389,11 @@ func (s *Server) handleAdminAnnounceResult() http.HandlerFunc {
 
 		err := sqlitex.Execute(conn, query, nil)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err.Error() == expected {
+				respondPlainText(&w, "Already inserted into is_end_of_election, not inserting again")
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
 			return
 		}
 		respondPlainText(&w, "Successfully inserted into is_end_of_election")
