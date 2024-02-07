@@ -160,7 +160,7 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 	}
 }
 
-// TODO this function is not done or tested.
+// TODO this function is not tested.
 func (s *Server) handleAuthResetPassword() http.HandlerFunc {
 	type request struct {
 		Email string `json:"email"`
@@ -169,11 +169,37 @@ func (s *Server) handleAuthResetPassword() http.HandlerFunc {
 		Response bool `json:"response"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("TODO"))
+		if !isHeaderJSON(w, r) {
+			return
+		}
+		defer bodyClose(r.Body)
+		conn := s.Database.Get(r.Context())
+		defer s.Database.Put(conn)
+
+		// Match the incoming JSON structure.
+		req := request{}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		// Use the helper function to update the user's password.
+		err := helperUpdatePassword(conn, req.Email, "password")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		jsonResponse, err := json.Marshal(response{Response: true})
+		if err != nil {
+			http.Error(w, "Error converting response to JSON", http.StatusInternalServerError)
+			return
+		}
+		respondJSON(&w, jsonResponse)
 	}
 }
 
-// TODO this function is not done or tested.
+// TODO this function is not tested.
 func (s *Server) handleAuthUpdatePassword() http.HandlerFunc {
 	type request struct {
 		Email    string `json:"email"`
@@ -183,8 +209,53 @@ func (s *Server) handleAuthUpdatePassword() http.HandlerFunc {
 		Response bool `json:"response"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("TODO"))
+		if !isHeaderJSON(w, r) {
+			return
+		}
+		defer bodyClose(r.Body)
+		conn := s.Database.Get(r.Context())
+		defer s.Database.Put(conn)
+
+		// Match the incoming JSON structure.
+		req := request{}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		// Use the helper function to update the user's password.
+		err := helperUpdatePassword(conn, req.Email, req.Password)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		jsonResponse, err := json.Marshal(response{Response: true})
+		if err != nil {
+			http.Error(w, "Error converting response to JSON", http.StatusInternalServerError)
+			return
+		}
+		respondJSON(&w, jsonResponse)
 	}
+}
+
+func helperUpdatePassword(conn *sqlite.Conn, email string, newPassword string) error {
+	// Validate email string (mitigates SQL injection).
+	if _, err := mail.ParseAddress(email); err != nil {
+		return err
+	}
+
+	// Hash the password.
+	newHash, err := argon2id.CreateHash(newPassword, argon2id.DefaultParams)
+	if err != nil {
+		return err
+	}
+
+	// Update the user's password.
+	query := `UPDATE users SET password = ? WHERE email = ?;`
+	return sqlitex.Execute(conn, query, &sqlitex.ExecOptions{
+		Args: []any{newHash, email},
+	})
 }
 
 // +----------------------------------------------------------------------------------------------+
