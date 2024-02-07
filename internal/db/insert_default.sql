@@ -9,7 +9,7 @@ WHERE x != 0 is a hack to make each row different.
 
 -- noinspection SqlResolveForFile
 INSERT INTO users (uuid, email, password, has_default_password, is_central_authority) VALUES
-(uuidv7(), 'admin@sentinelvote.tech', argon2id('Password1!'), FALSE, TRUE);
+(uuidv7(), 'admin@sentinelvote.tech', argon2id('password'), FALSE, TRUE);
 
 CREATE TRIGGER IF NOT EXISTS derive_public_key AFTER INSERT ON users
 BEGIN
@@ -23,7 +23,7 @@ INSERT INTO users (uuid, email, password, has_default_password, constituency, fi
 SELECT
 	uuidv7(),
 	'user' || x || '@sentinelvote.tech',
-	argon2id('Password1!'),
+	argon2id('password'),
 	FALSE,
 	(SELECT constituency FROM constituencies WHERE x != 0 ORDER BY RANDOM() LIMIT 1),
 	(SELECT first_name FROM first_names      WHERE x != 0 ORDER BY RANDOM() LIMIT 1),
