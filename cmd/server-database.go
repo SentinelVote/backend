@@ -13,23 +13,23 @@ import (
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-func (s *Server) database() error {
+func (s *Server) database(uri string) error {
 	// Handle existing database files.
-	if s.URI != "file::memory:?mode=memory" {
-		s.URI = filepath.Join("public", s.URI)
-		if err := removeDatabaseFileIfExists(s.URI); err != nil {
+	if uri != "file::memory:?mode=memory" {
+		uri = filepath.Join("public", uri)
+		if err := removeDatabaseFileIfExists(uri); err != nil {
 			return err
 		}
-		if err := removeDatabaseFileIfExists(s.URI + "-shm"); err != nil {
+		if err := removeDatabaseFileIfExists(uri + "-shm"); err != nil {
 			return err
 		}
-		if err := removeDatabaseFileIfExists(s.URI + "-wal"); err != nil {
+		if err := removeDatabaseFileIfExists(uri + "-wal"); err != nil {
 			return err
 		}
 	}
 
 	// Create a new database.
-	if pool, err := sqlitex.NewPool(s.URI, sqlitex.PoolOptions{
+	if pool, err := sqlitex.NewPool(uri, sqlitex.PoolOptions{
 		Flags:    0,
 		PoolSize: s.PoolSize,
 		PrepareConn: func(conn *sqlite.Conn) error {
@@ -50,7 +50,7 @@ func (s *Server) database() error {
 	}); err != nil {
 		return err
 	} else {
-		log.Println("Created new database at " + s.URI)
+		log.Println("Created new database at " + uri)
 		s.Database = pool
 	}
 	conn := s.Database.Get(context.Background())

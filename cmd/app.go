@@ -29,7 +29,7 @@ func Run() error {
 	} else if s.PoolSize <= 3 {
 		s.PoolSize = 4
 	}
-	if err := s.database(); err != nil {
+	if err := s.database(s.URI); err != nil {
 		return err
 	}
 
