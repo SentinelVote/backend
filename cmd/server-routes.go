@@ -24,6 +24,7 @@ func (s *Server) routes() {
 	// Unprotected handlers (no authentication required).
 	s.Router.Get("/lrs/generate-keys", s.handleVoterGenerateKeys())
 	s.Router.Post("/lrs/sign", s.handleVoterSign())
+	s.Router.Get("/is-end-of-election", s.handleIsEndOfElection())
 
 	// Admin-only handlers (authentication required).
 	s.Router.Route("/admin", func(r chi.Router) {

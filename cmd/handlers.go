@@ -177,6 +177,39 @@ func (s *Server) handleAuthUpdatePassword() http.HandlerFunc {
 }
 
 // +----------------------------------------------------------------------------------------------+
+// |                                   Admin and Voter Handlers                                   |
+// +----------------------------------------------------------------------------------------------+
+
+func (s *Server) handleIsEndOfElection() http.HandlerFunc {
+	query := `SELECT EXISTS (SELECT 1 FROM is_end_of_election);`
+	var response string
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		conn := s.Database.Get(r.Context())
+		defer s.Database.Put(conn)
+
+		var isEndOfElection bool
+		err := sqlitex.Execute(conn, query, &sqlitex.ExecOptions{
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				isEndOfElection = stmt.ColumnBool(0)
+				return nil
+			},
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if isEndOfElection {
+			response = "true"
+		} else {
+			response = "false"
+		}
+		respondPlainText(&w, response)
+	}
+}
+
+// +----------------------------------------------------------------------------------------------+
 // |                                        Admin Handlers                                        |
 // +----------------------------------------------------------------------------------------------+
 
