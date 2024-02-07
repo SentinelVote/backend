@@ -60,6 +60,14 @@ func respondPlainText[T string | []byte](w *http.ResponseWriter, response T) {
 	}
 }
 
+// bodyClose closes the request body and logs any errors.
+func bodyClose(Body io.ReadCloser) {
+	err := Body.Close()
+	if err != nil {
+		log.Println("Error closing request body: " + err.Error())
+	}
+}
+
 // +----------------------------------------------------------------------------------------------+
 // |                                   Authentication Handlers                                    |
 // +----------------------------------------------------------------------------------------------+
@@ -81,12 +89,7 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 		if !isHeaderJSON(w, r) {
 			return
 		}
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			if err != nil {
-				log.Println("Error closing request body: " + err.Error())
-			}
-		}(r.Body)
+		defer bodyClose(r.Body)
 		conn := s.Database.Get(r.Context())
 		defer s.Database.Put(conn)
 
@@ -363,12 +366,7 @@ func (s *Server) handleVoterSign() http.HandlerFunc {
 			http.Error(w, "Please send a 'Content-Type' of 'application/json'", http.StatusBadRequest)
 			return
 		}
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			if err != nil {
-				log.Println(err)
-			}
-		}(r.Body)
+		defer bodyClose(r.Body)
 
 		// Define a request structure to match the incoming JSON structure
 		req := request{}
@@ -432,12 +430,7 @@ func (s *Server) handleVoterUpdateHasVotedByEmail() http.HandlerFunc {
 		if !isHeaderJSON(w, r) {
 			return
 		}
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			if err != nil {
-				log.Println(err)
-			}
-		}(r.Body)
+		defer bodyClose(r.Body)
 		var req request
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -482,12 +475,7 @@ func (s *Server) handleVoterUpdateKeysByEmail() http.HandlerFunc {
 		if !isHeaderJSON(w, r) {
 			return
 		}
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			if err != nil {
-				log.Println(err)
-			}
-		}(r.Body)
+		defer bodyClose(r.Body)
 		var req request
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Error parsing JSON request body", http.StatusBadRequest)
@@ -552,12 +540,7 @@ func (s *Server) handleVoterGetPrivateKeyByEmail() http.HandlerFunc {
 		if !isHeaderJSON(w, r) {
 			return
 		}
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			if err != nil {
-				log.Println(err)
-			}
-		}(r.Body)
+		defer bodyClose(r.Body)
 		var req request
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Error parsing JSON request body", http.StatusBadRequest)
