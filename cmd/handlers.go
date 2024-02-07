@@ -84,6 +84,8 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 		Constituency       string `json:"constituency"`
 		IsCentralAuthority bool   `json:"isCentralAuthority"`
 		HasPublicKey       bool   `json:"hasPublicKey"`
+		HasVoted           bool   `json:"hasVoted"`
+		HasDefaultPassword bool   `json:"hasDefaultPassword"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !isHeaderJSON(w, r) {
@@ -110,8 +112,10 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 		var constituency string
 		var isCentralAuthority bool
 		var publicKey string
+		var hasVoted bool
+		var hasDefaultPassword bool
 
-		query := `SELECT password, constituency, is_central_authority, public_key FROM users WHERE email = ?;`
+		query := `SELECT password, constituency, is_central_authority, public_key, has_voted, has_default_password FROM users WHERE email = ?;`
 		err := sqlitex.Execute(conn, query, &sqlitex.ExecOptions{
 			Args: []any{req.Email},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
@@ -119,6 +123,8 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 				constituency = stmt.ColumnText(1)
 				isCentralAuthority = stmt.ColumnBool(2)
 				publicKey = stmt.ColumnText(3)
+				hasVoted = stmt.ColumnBool(4)
+				hasDefaultPassword = stmt.ColumnBool(5)
 				return nil
 			},
 		})
@@ -142,6 +148,8 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 			Constituency:       constituency,
 			IsCentralAuthority: isCentralAuthority,
 			HasPublicKey:       publicKey != "",
+			HasVoted:           hasVoted,
+			HasDefaultPassword: hasDefaultPassword,
 		})
 		if err != nil {
 			http.Error(w, "Error converting response to JSON", http.StatusInternalServerError)
