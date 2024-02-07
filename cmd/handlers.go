@@ -194,18 +194,58 @@ func (s *Server) handleAdminGetUsers() http.HandlerFunc {
 		FROM users
 		WHERE is_central_authority = FALSE
 		ORDER BY (public_key != '') DESC, rowid;`
+	const query_regular = `
+		SELECT email, first_name, last_name, constituency, public_key, private_key, has_voted
+		FROM users
+		WHERE is_central_authority = FALSE
+		ORDER BY (public_key != '') DESC, rowid;`
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		conn := s.Database.Get(r.Context())
 		defer s.Database.Put(conn)
 
-		users, err := sqlitex.ResultText(conn.Prep(query))
+		var email []string
+		var firstName []string
+		var lastName []string
+		var constituency []string
+		var publicKey []string
+		var privateKey []string
+		var hasVoted []bool
+		err := sqlitex.Execute(conn, query_regular, &sqlitex.ExecOptions{
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				email = append(email, stmt.ColumnText(0))
+				firstName = append(firstName, stmt.ColumnText(1))
+				lastName = append(lastName, stmt.ColumnText(2))
+				constituency = append(constituency, stmt.ColumnText(3))
+				publicKey = append(publicKey, stmt.ColumnText(4))
+				privateKey = append(privateKey, stmt.ColumnText(5))
+				hasVoted = append(hasVoted, stmt.ColumnBool(6))
+				return nil
+			},
+		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		jsonResponse, err := json.Marshal(struct {
+			Email        []string `json:"email"`
+			FirstName    []string `json:"firstName"`
+			LastName     []string `json:"lastName"`
+			Constituency []string `json:"constituency"`
+			PublicKey    []string `json:"publicKey"`
+			PrivateKey   []string `json:"privateKey"`
+			HasVoted     []bool   `json:"hasVoted"`
+		}{
+			Email:        email,
+			FirstName:    firstName,
+			LastName:     lastName,
+			Constituency: constituency,
+			PublicKey:    publicKey,
+			PrivateKey:   privateKey,
+			HasVoted:     hasVoted,
+		})
 
-		respondJSON(&w, users)
+		respondJSON(&w, jsonResponse)
 	}
 }
 
