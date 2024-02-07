@@ -35,7 +35,7 @@ func ParseCLI() Flags {
 	flag.Parse() // -h and --help is implicitly defined.
 
 	// Validate the database URI.
-	if *uri == "memory" {
+	if *uri == "memory" || *uri == ":memory:" || *uri == "file::memory:?mode=memory" {
 		*uri = "file::memory:?mode=memory"
 	} else if *uri != "sqlite3.db" {
 		// Check if the string is a valid filename (alphanumeric, underscore, hyphen).
