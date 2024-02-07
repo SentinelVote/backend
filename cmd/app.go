@@ -26,6 +26,8 @@ func Run() error {
 	s.PoolSize = int(math.Ceil(float64(s.TotalUsers) * .75))
 	if s.PoolSize > 1000 {
 		s.PoolSize = 1000
+	} else if s.PoolSize <= 3 {
+		s.PoolSize = 4
 	}
 	if err := s.database(); err != nil {
 		return err
