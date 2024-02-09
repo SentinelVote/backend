@@ -230,6 +230,15 @@ func (s *Server) handleAuthUpdatePassword() http.HandlerFunc {
 			return
 		}
 
+		// Set the has_default_password field to false.
+		err = sqlitex.Execute(conn, `UPDATE users SET has_default_password = FALSE WHERE email = ?;`, &sqlitex.ExecOptions{
+			Args: []any{req.Email},
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		jsonResponse, err := json.Marshal(response{Response: true})
 		if err != nil {
 			http.Error(w, "Error converting response to JSON", http.StatusInternalServerError)
