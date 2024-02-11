@@ -103,11 +103,12 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 		}
 
 		// Validate email string (mitigates SQL injection).
-		if _, err := mail.ParseAddress(req.Email); err != nil {
+		if _, err := mail.ParseAddress(req.Email); err != nil || req.Email == "" {
 			http.Error(w, "Invalid email or password", http.StatusBadRequest)
 			return
 		}
 
+		var email string
 		var hash string
 		var constituency string
 		var isCentralAuthority bool
@@ -115,7 +116,7 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 		var hasVoted bool
 		var hasDefaultPassword bool
 
-		query := `SELECT password, constituency, is_central_authority, public_key, has_voted, has_default_password FROM users WHERE email = ?;`
+		query := `SELECT password, constituency, is_central_authority, public_key, has_voted, has_default_password, email FROM users WHERE email = ?;`
 		err := sqlitex.Execute(conn, query, &sqlitex.ExecOptions{
 			Args: []any{req.Email},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
@@ -125,11 +126,18 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 				publicKey = stmt.ColumnText(3)
 				hasVoted = stmt.ColumnBool(4)
 				hasDefaultPassword = stmt.ColumnBool(5)
+				email = stmt.ColumnText(6)
 				return nil
 			},
 		})
 		if err != nil {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		// If the user does not exist, return an error.
+		if email == "" || email != req.Email {
+			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
 			return
 		}
 
