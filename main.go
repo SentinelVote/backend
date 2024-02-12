@@ -2,7 +2,7 @@
 package main
 
 import (
-	"backend/cmd"
+	"github.com/sentinelvote/backend/cmd"
 	"log"
 )
 
