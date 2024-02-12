@@ -20,6 +20,7 @@ import (
 //
 // Helpers
 // Authentication Handlers
+// Admin and Voter Handlers
 // Admin Handlers
 // Voter Handlers
 
@@ -87,6 +88,7 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 		HasVoted           bool   `json:"hasVoted"`
 		HasDefaultPassword bool   `json:"hasDefaultPassword"`
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !isHeaderJSON(w, r) {
 			return
@@ -149,8 +151,6 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 			return
 		}
 
-		// TODO: Optionally set JWT or Paseto authentication token here.
-
 		jsonResponse, err := json.Marshal(response{
 			Email:              req.Email,
 			Constituency:       constituency,
@@ -168,7 +168,6 @@ func (s *Server) handleAuthLogin() http.HandlerFunc {
 	}
 }
 
-// TODO this function is not tested.
 func (s *Server) handleAuthResetPassword() http.HandlerFunc {
 	type request struct {
 		Email string `json:"email"`
@@ -176,6 +175,7 @@ func (s *Server) handleAuthResetPassword() http.HandlerFunc {
 	type response struct {
 		Response bool `json:"response"`
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !isHeaderJSON(w, r) {
 			return
@@ -227,7 +227,6 @@ func (s *Server) handleAuthResetPassword() http.HandlerFunc {
 	}
 }
 
-// TODO this function is not tested.
 func (s *Server) handleAuthUpdatePassword() http.HandlerFunc {
 	type request struct {
 		Email    string `json:"email"`
@@ -236,6 +235,7 @@ func (s *Server) handleAuthUpdatePassword() http.HandlerFunc {
 	type response struct {
 		Response bool `json:"response"`
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !isHeaderJSON(w, r) {
 			return
@@ -407,6 +407,7 @@ func (s *Server) handleVoterGenerateKeys() http.HandlerFunc {
 		PublicKey  string `json:"publicKey"`
 		PrivateKey string `json:"privateKey"`
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		status, privateKey := client.GeneratePrivateKey("prime256v1", "PEM")
 		if status != ring.Success {
@@ -442,6 +443,7 @@ func (s *Server) handleVoterSign() http.HandlerFunc {
 	type response struct {
 		Signature string `json:"signature"`
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Content-Type") != "application/json" {
 			http.Error(w, "Please send a 'Content-Type' of 'application/json'", http.StatusBadRequest)
@@ -506,6 +508,7 @@ func (s *Server) handleVoterUpdateHasVotedByEmail() http.HandlerFunc {
 	type response struct {
 		Success bool `json:"success"`
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called: handleVoterUpdateHasVotedByEmail()")
 		if !isHeaderJSON(w, r) {
@@ -551,6 +554,7 @@ func (s *Server) handleVoterUpdateKeysByEmail() http.HandlerFunc {
 		PublicKey  string `json:"publicKey"`
 		PrivateKey string `json:"privateKey"`
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called: handleVoterUpdateKeysByEmail()")
 		if !isHeaderJSON(w, r) {
@@ -616,6 +620,7 @@ func (s *Server) handleVoterGetPrivateKeyByEmail() http.HandlerFunc {
 	type response struct {
 		PrivateKey string `json:"privateKey"`
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called: handleVoterGetPrivateKeyByEmail()")
 		if !isHeaderJSON(w, r) {
