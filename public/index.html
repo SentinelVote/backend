@@ -4,68 +4,140 @@
 	<meta charset="UTF-8">
 	<title>SentinelVote Backend</title>
 	<style>
+		/* Original Color Palette from Frontend: */
+		/* background: linear-gradient(-45deg, #4fd1c5, #0f0c29, #24243e, #23a6d5); */
 		:root {
-			font-family: system-ui, sans-serif;
+			font-family: Inter, system-ui, sans-serif;
 			line-height: 1.5;
+			color: white;
+			background: linear-gradient(-45deg, #f39cbe, #200226, #43053d, #af81d4);
+			background-size: 300% 300%;
+			animation: gradient 15s ease infinite;
+		}
+
+		html, body, h1 {
+			margin: 0;
+			padding: 0;
+		}
+
+		main {
+			& > * {
+				padding-inline: 1rem;
+			}
+
+			display: grid;
+		}
+
+		header {
+			& h1 {
+				font-size: 1.25rem;
+			}
+			& span {
+				color: oklch(1 0 0 / .75);
+				font-size: 0.75rem;
+				text-wrap: balance;
+			}
+			padding-block: 1em;
+			background-color: black;
+			font-weight: 600;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+
+		article {
+			justify-self: center;
+			font-size: 1.5em;
+			font-weight: 500;
+			flex-grow: 1;
+			height: 100%;
+			background-color: oklch(100% 0 0);
+			color: black;
+			border-radius: .25em;
+			margin: 1em;
+			width: fit-content;
+			padding-inline: 1ch;
+		}
+
+		/* Tailwind colors: *//*
+		a {
+			color: rgb(59 130 246);
+			&:hover {
+				color: rgb(29 78 216);
+			}
+			&:active {
+				color: rgb(239 68 68);
+			}
+		}
+		/**/
+
+		/* Tailwind colors, but more purple: */
+		a {
+			color: oklch(0.623 0.188 289.815);
+			&:hover {
+				color: oklch(0.488 0.217 294.376);
+			}
+			&:active {
+				color: rgb(239 68 68);
+			}
+		}
+
+		@keyframes gradient {
+			0% {
+				background-position: 0 50%;
+			}
+			50% {
+				background-position: 100% 50%;
+			}
+			100% {
+				background-position: 0 50%;
+			}
 		}
 	</style>
 </head>
 <body>
 <main>
-	<h1>SentinelVote Backend</h1>
+	<header>
+		<h1>api.sentinelvote.tech</h1>
+		<span>This page is not 'part' of the election. (It is shown for development and documentation purposes)</span>
+	</header>
 	<article>
 		<p>
 			See <a href="https://github.com/SentinelVote/backend">github.com/SentinelVote/backend</a> for more information.
 		</p>
 		<ul>
-			<li><a href="/lrs/generate-keys">/lrs/generate-keys</a></li>
-			<li><a href="/users">/users</a></li>
-			<li><a href="/users/admin%40sentinelvote.tech">/users/admin@sentinelvote.tech</a></li>
-			<li><a href="/users/user1%40sentinelvote.tech">/users/user1@sentinelvote.tech</a></li>
-			<li><a href="/users/user2%40sentinelvote.tech">/users/user2@sentinelvote.tech</a></li>
-			<li><a href="/users/user3%40sentinelvote.tech">/users/user3@sentinelvote.tech</a></li>
-			<li>
-				Field-level queries:
+			<li>Voter and Admin:
 				<ul>
-					<li>
-						<span>Central Authority (admin):</span>
-						<ul>
-							<li><a href="/users/admin%40sentinelvote.tech/firstName">/users/admin@sentinelvote.tech/firstName</a></li>
-							<li><a href="/users/admin%40sentinelvote.tech/FirstName">/users/admin@sentinelvote.tech/FirstName</a></li>
-							<li><a href="/users/admin%40sentinelvote.tech/first_name">/users/admin@sentinelvote.tech/first_name</a></li>
-							<li><a href="/users/admin%40sentinelvote.tech/first-name">/users/admin@sentinelvote.tech/first-name</a></li>
-							<li><a href="/users/admin%40sentinelvote.tech/lastName">/users/admin@sentinelvote.tech/lastName</a></li>
-							<li><a href="/users/admin%40sentinelvote.tech/LastName">/users/admin@sentinelvote.tech/LastName</a></li>
-							<li><a href="/users/admin%40sentinelvote.tech/last_name">/users/admin@sentinelvote.tech/last_name</a></li>
-							<li><a href="/users/admin%40sentinelvote.tech/last-name">/users/admin@sentinelvote.tech/last-name</a></li>
-						</ul>
-					</li>
-					<li>
-						<span>Initialized Voter (user1, user2):</span>
-						<ul>
-							<li><a href="/users/user1%40sentinelvote.tech/firstName">/users/user1@sentinelvote.tech/firstName</a></li>
-							<li><a href="/users/user1%40sentinelvote.tech/FirstName">/users/user1@sentinelvote.tech/FirstName</a></li>
-							<li><a href="/users/user1%40sentinelvote.tech/first_name">/users/user1@sentinelvote.tech/first_name</a></li>
-							<li><a href="/users/user1%40sentinelvote.tech/first-name">/users/user1@sentinelvote.tech/first-name</a></li>
-							<li><a href="/users/user1%40sentinelvote.tech/firstName">/users/user1@sentinelvote.tech/firstName</a></li>
-							<li><a href="/users/user1%40sentinelvote.tech/FirstName">/users/user1@sentinelvote.tech/FirstName</a></li>
-							<li><a href="/users/user1%40sentinelvote.tech/first_name">/users/user1@sentinelvote.tech/first_name</a></li>
-							<li><a href="/users/user1%40sentinelvote.tech/first-name">/users/user1@sentinelvote.tech/first-name</a></li>
-						</ul>
-					</li>
-					<li>
-						<span>Uninitialized Voter (user3, ...):</span>
-						<ul>
-							<li><a href="/users/user3%40sentinelvote.tech/firstName">/users/user3@sentinelvote.tech/firstName</a></li>
-							<li><a href="/users/user3%40sentinelvote.tech/FirstName">/users/user3@sentinelvote.tech/FirstName</a></li>
-							<li><a href="/users/user3%40sentinelvote.tech/first_name">/users/user3@sentinelvote.tech/first_name</a></li>
-							<li><a href="/users/user3%40sentinelvote.tech/first-name">/users/user3@sentinelvote.tech/first-name</a></li>
-							<li><a href="/users/user3%40sentinelvote.tech/firstName">/users/user3@sentinelvote.tech/firstName</a></li>
-							<li><a href="/users/user3%40sentinelvote.tech/FirstName">/users/user3@sentinelvote.tech/FirstName</a></li>
-							<li><a href="/users/user3%40sentinelvote.tech/first_name">/users/user3@sentinelvote.tech/first_name</a></li>
-							<li><a href="/users/user3%40sentinelvote.tech/first-name">/users/user3@sentinelvote.tech/first-name</a></li>
-						</ul>
-					</li>
+					<li><a href="/is-end-of-election">/is-end-of-election</a> - Check if the election has ended.</li>
+				</ul>
+			</li>
+
+			<li>Voter-only:
+				<ul>
+					<li><a href="/lrs/generate-keys">/lrs/generate-keys</a> - Generate keys for voters (in JSON).</li>
+				</ul>
+			</li>
+
+			<li>Admin-only:
+				<ul>
+					<li><a href="/admin/users">/admin/users</a> - Retrieve all users in JSON.</li>
+					<li><a href="/admin/folded-public-keys">/admin/folded-public-keys</a> - Generate folded public keys and store them in the blockchain.</li>
+					<li><a href="/admin/announce">/admin/announce</a> - Announce the election result and stop the voting process.</li>
+				</ul>
+			</li>
+
+			<li>Development-only:
+				<ul>
+					<li><a href="/dev/panic">/dev/panic</a> - Trigger a panic for testing.</li>
+					<li><a href="/dev/mem-system">/dev/mem-system</a> - Retrieve system memory usage in JSON.</li>
+					<li><a href="/dev/mem-app">/dev/mem-app</a> - Retrieve application memory usage in JSON.</li>
+					<li><a href="/dev/db">/dev/db</a> - Retrieve full database in JSON.</li>
+					<li><a href="/dev/db/reset/{schema}/{users}">/dev/db/reset/{schema}/{users}</a> - Reset database (specify schema and users).</li>
+					<li><a href="/dev/db/reset/production/3">/dev/db/reset/production/3</a> - Reset database with 3 users, using production schema.</li>
+					<li><a href="/dev/db/reset/simulation/3">/dev/db/reset/simulation/3</a> - Reset database with 3 users, using simulation schema.</li>
+					<li><a href="/dev/db/reset/simulation-full/3">/dev/db/reset/simulation-full/3</a> - Reset database with 3 users, using full simulation schema.</li>
+					<li><a href="/dev/blockchain/reset">/dev/blockchain/reset</a> - Reset blockchain.</li>
 				</ul>
 			</li>
 		</ul>
