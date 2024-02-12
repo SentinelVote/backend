@@ -162,15 +162,6 @@ func meminfoParse() (map[string]int, error) {
 // |                                           Database                                           |
 // +----------------------------------------------------------------------------------------------+
 
-func (s *Server) handleDevDatabaseRecreateFile() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := s.database("sqlite3.db")
-		if err != nil {
-			return
-		}
-	}
-}
-
 func (s *Server) handleDevDatabaseReset() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		conn := s.Database.Get(r.Context())
