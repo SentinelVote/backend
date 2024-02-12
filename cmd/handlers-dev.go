@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"strings"
 
-	"backend/internal/db"
 	"github.com/go-chi/chi/v5"
 	"github.com/goccy/go-json"
+	"github.com/sentinelvote/backend/internal/db"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 

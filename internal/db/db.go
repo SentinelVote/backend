@@ -1,12 +1,13 @@
 package db
 
+// Standard library on top, third-party packages below.
 import (
-	"backend/internal/foldpub"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/sentinelvote/backend/internal/foldpub"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )

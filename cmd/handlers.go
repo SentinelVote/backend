@@ -2,15 +2,16 @@ package cmd
 
 // Standard library on top, application and third-party packages below.
 import (
-	"backend/internal/foldpub"
-	"github.com/alexedwards/argon2id"
-	"github.com/goccy/go-json"
-	"github.com/zbohm/lirisi/client"
-	"github.com/zbohm/lirisi/ring"
 	"io"
 	"log"
 	"net/http"
 	"net/mail"
+
+	"github.com/alexedwards/argon2id"
+	"github.com/goccy/go-json"
+	"github.com/sentinelvote/backend/internal/foldpub"
+	"github.com/zbohm/lirisi/client"
+	"github.com/zbohm/lirisi/ring"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )

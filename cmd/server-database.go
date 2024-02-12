@@ -2,13 +2,13 @@ package cmd
 
 // Standard library on top, third-party packages below.
 import (
-	"backend/internal/db"
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/sentinelvote/backend/internal/db"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )

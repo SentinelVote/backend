@@ -1,13 +1,15 @@
 package foldpub
 
+// Standard library on top, third-party packages below.
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"net/http"
+
 	"github.com/goccy/go-json"
 	"github.com/zbohm/lirisi/client"
 	"github.com/zbohm/lirisi/ring"
-	"io"
-	"net/http"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
