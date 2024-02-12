@@ -8,6 +8,12 @@ cd backend
 go run . # add --help or -h for CLI flags.
 ```
 
+## Build
+```sh
+CGO_ENABLED=0 go build -o ./api
+./api # add --help or -h for CLI flags.
+```
+
 ## Contributor Notes
 
 ### Read-Only Files
