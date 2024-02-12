@@ -191,8 +191,28 @@ func (s *Server) handleAuthResetPassword() http.HandlerFunc {
 			return
 		}
 
+		// Check if the user exists, and the user is not a central authority.
+		// Central authority should not reset their password from the frontend interface.
+		var email string
+		query := `SELECT email FROM users WHERE email = ? AND is_central_authority = FALSE;`
+		err := sqlitex.Execute(conn, query, &sqlitex.ExecOptions{
+			Args: []any{req.Email},
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				email = stmt.ColumnText(0)
+				return nil
+			},
+		})
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		if email == "" || email != req.Email {
+			http.Error(w, "Invalid email", http.StatusBadRequest)
+			return
+		}
+
 		// Use the helper function to update the user's password.
-		err := helperUpdatePassword(conn, req.Email, "password")
+		err = helperUpdatePassword(conn, req.Email, "password")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
