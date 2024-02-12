@@ -13,6 +13,11 @@
 			background: linear-gradient(-45deg, #f39cbe, #200226, #43053d, #af81d4);
 			background-size: 300% 300%;
 			animation: gradient 15s ease infinite;
+			--tw-blue-500: #3b82f6;
+			--tw-blue-700: #1d4ed8;
+			--tw-green-500: #22c55e;
+			--tw-green-700: #15803d;
+			--tw-red-500: #ef4444;
 		}
 
 		html, body, h1 {
@@ -35,6 +40,7 @@
 			& span {
 				color: oklch(1 0 0 / .75);
 				font-size: 0.75rem;
+				/* noinspection CssInvalidPropertyValue */
 				text-wrap: balance;
 			}
 			padding-block: 1em;
@@ -48,7 +54,7 @@
 
 		article {
 			justify-self: center;
-			font-size: 1.5em;
+			font-size: 1.125em;
 			font-weight: 500;
 			flex-grow: 1;
 			height: 100%;
@@ -60,23 +66,20 @@
 			padding-inline: 1ch;
 		}
 
-		/* Tailwind colors: *//*
-		a {
-			color: rgb(59 130 246);
+		a.used-in-frontend {
+			color: var(--tw-blue-500);
 			&:hover {
-				color: rgb(29 78 216);
+				color: var(--tw-blue-700);
 			}
 			&:active {
-				color: rgb(239 68 68);
+				color: var(--tw-red-500);
 			}
 		}
-		/**/
 
-		/* Tailwind colors, but more purple: */
 		a {
-			color: oklch(0.623 0.188 289.815);
+			color: var(--tw-green-500);
 			&:hover {
-				color: oklch(0.488 0.217 294.376);
+				color: var(--tw-green-700);
 			}
 			&:active {
 				color: rgb(239 68 68);
@@ -104,26 +107,29 @@
 	</header>
 	<article>
 		<p>
-			See <a href="https://github.com/SentinelVote/backend">github.com/SentinelVote/backend</a> for more information.
+			These are GET APIs that can be used to interact with the backend.<br>
+			URLs that are colored in blue are used in the frontend.<br>
+			URLs that are colored in green are not accessible from the frontend interface.<br>
+			See <a href="https://github.com/SentinelVote/backend" style="color: #000">github.com/SentinelVote/backend</a> for more information.
 		</p>
 		<ul>
 			<li>Voter and Admin:
 				<ul>
-					<li><a href="/is-end-of-election">/is-end-of-election</a> - Check if the election has ended.</li>
+					<li><a class="used-in-frontend" href="/is-end-of-election">/is-end-of-election</a> - Check if the election has ended.</li>
 				</ul>
 			</li>
 
 			<li>Voter-only:
 				<ul>
-					<li><a href="/lrs/generate-keys">/lrs/generate-keys</a> - Generate keys for voters (in JSON).</li>
+					<li><a class="used-in-frontend" href="/lrs/generate-keys">/lrs/generate-keys</a> - Generate keys for voters (in JSON).</li>
 				</ul>
 			</li>
 
 			<li>Admin-only:
 				<ul>
-					<li><a href="/admin/users">/admin/users</a> - Retrieve all users in JSON.</li>
-					<li><a href="/admin/folded-public-keys">/admin/folded-public-keys</a> - Generate folded public keys and store them in the blockchain.</li>
-					<li><a href="/admin/announce">/admin/announce</a> - Announce the election result and stop the voting process.</li>
+					<li><a class="used-in-frontend" href="/admin/users">/admin/users</a> - Retrieve all users in JSON.</li>
+					<li><a class="used-in-frontend" href="/admin/folded-public-keys">/admin/folded-public-keys</a> - Generate folded public keys and store them in the blockchain.</li>
+					<li><a class="used-in-frontend" href="/admin/announce">/admin/announce</a> - Announce the election result and stop the voting process.</li>
 				</ul>
 			</li>
 
@@ -133,11 +139,11 @@
 					<li><a href="/dev/mem-system">/dev/mem-system</a> - Retrieve system memory usage in JSON.</li>
 					<li><a href="/dev/mem-app">/dev/mem-app</a> - Retrieve application memory usage in JSON.</li>
 					<li><a href="/dev/db">/dev/db</a> - Retrieve full database in JSON.</li>
-					<li><a href="/dev/db/reset/{schema}/{users}">/dev/db/reset/{schema}/{users}</a> - Reset database (specify schema and users).</li>
-					<li><a href="/dev/db/reset/production/3">/dev/db/reset/production/3</a> - Reset database with 3 users, using production schema.</li>
-					<li><a href="/dev/db/reset/simulation/3">/dev/db/reset/simulation/3</a> - Reset database with 3 users, using simulation schema.</li>
-					<li><a href="/dev/db/reset/simulation-full/3">/dev/db/reset/simulation-full/3</a> - Reset database with 3 users, using full simulation schema.</li>
-					<li><a href="/dev/blockchain/reset">/dev/blockchain/reset</a> - Reset blockchain.</li>
+					<li><a class="used-in-frontend" href="/dev/db/reset/{schema}/{users}">/dev/db/reset/{schema}/{users}</a> - Reset database (specify schema and users).</li>
+					<li><a class="used-in-frontend" href="/dev/db/reset/production/3">/dev/db/reset/production/3</a> - Reset database with 3 users, using production schema.</li>
+					<li><a class="used-in-frontend" href="/dev/db/reset/simulation/3">/dev/db/reset/simulation/3</a> - Reset database with 3 users, using simulation schema.</li>
+					<li><a class="used-in-frontend" href="/dev/db/reset/simulation-full/3">/dev/db/reset/simulation-full/3</a> - Reset database with 3 users, using full simulation schema.</li>
+					<li><a href="/dev/blockchain/reset">/dev/blockchain/reset</a> - Reset blockchain (takes a while, <strong>do not refresh or close the page</strong>).</li>
 				</ul>
 			</li>
 		</ul>
