@@ -15,15 +15,13 @@ import (
 
 func (s *Server) database(uri string) error {
 	// Handle existing database files.
-	if uri != "file::memory:?mode=memory" {
-		uri = filepath.Join("public", uri)
-		if err := removeDatabaseFileIfExists(uri); err != nil {
-			return err
-		}
-		if err := removeDatabaseFileIfExists(uri + "-shm"); err != nil {
-			return err
-		}
-		if err := removeDatabaseFileIfExists(uri + "-wal"); err != nil {
+	uri = filepath.Join("public", uri)
+	for _, file := range []string{
+		uri,
+		uri + "-shm",
+		uri + "-wal",
+	} {
+		if err := removeDatabaseFileIfExists(file); err != nil {
 			return err
 		}
 	}
@@ -64,7 +62,7 @@ func (s *Server) database(uri string) error {
 	} else if s.Schema == "simulation-full" {
 		return db.CreateSchema(conn, db.SIMULATION_FULL, s.TotalUsers)
 	} else {
-		return fmt.Errorf("👻") // This should never happen.
+		return fmt.Errorf("invalid schema `%s`", s.Schema)
 	}
 }
 
