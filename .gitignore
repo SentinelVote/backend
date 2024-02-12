@@ -1,10 +1,11 @@
-# IDE
+# IDE/OS specific files
 .idea/workspace.xml
 !.idea/backend.iml
 !.idea/misc.xml
 !.idea/modules.xml
 !.idea/sqldialects.xml
 !.idea/vcs.xml
+.DS_Store
 
 **/public/*.db
 **/public/*.db-shm
