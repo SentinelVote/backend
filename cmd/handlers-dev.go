@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -248,6 +249,29 @@ func (s *Server) handleDevDatabaseGetFullDatabase() http.HandlerFunc {
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Error writing the entire database", http.StatusInternalServerError)
+		}
+	}
+}
+
+// +----------------------------------------------------------------------------------------------+
+// |                                          Blockchain                                          |
+// +----------------------------------------------------------------------------------------------+
+
+// handleDevBlockchainReset resets the blockchain by recreating it.
+func (s *Server) handleDevBlockchainReset() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := os.Chdir("../blockchain"); err != nil {
+			http.Error(w, "Error changing directory", http.StatusInternalServerError)
+		} else if err := exec.Command("fablo", "prune").Run(); err != nil {
+			http.Error(w, "Error destroying the blockchain", http.StatusInternalServerError)
+		} else if err := exec.Command("fablo", "generate").Run(); err != nil {
+			http.Error(w, "Error generating the blockchain configuration", http.StatusInternalServerError)
+		} else if err := exec.Command("fablo", "up").Run(); err != nil {
+			http.Error(w, "Error recreating the blockchain", http.StatusInternalServerError)
+		} else if err := os.Chdir("../backend"); err != nil {
+			http.Error(w, "Error changing directory", http.StatusInternalServerError)
+		} else {
+			respondPlainText(&w, "Successfully recreated the blockchain.")
 		}
 	}
 }

@@ -47,5 +47,6 @@ func (s *Server) routes() {
 		r.Get("/mem-app", s.handleDevMemApp())
 		r.Get("/db", s.handleDevDatabaseGetFullDatabase())
 		r.Get("/db/reset/{schema}/{users}", s.handleDevDatabaseReset())
+		r.Get("/blockchain/reset", s.handleDevBlockchainReset())
 	})
 }
